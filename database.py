@@ -27,7 +27,7 @@ def get_user_xp(user_id):
     conn.close()
     return row  # 없으면 None 반환
 
-# 경험치 업데이트 함수 (추가 또는 제거)
+# 기존 update_xp 함수를 아래처럼 반환값이 있게 수정하세요
 def update_xp(user_id, amount):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
@@ -35,12 +35,14 @@ def update_xp(user_id, amount):
     row = get_user_xp(user_id)
     
     if row is None:
-        # 처음 등장한 유저라면 DB에 삽입
-        cursor.execute('INSERT INTO user_xp (user_id, xp, level) VALUES (?, ?, ?)', (user_id, amount, 1))
+        new_xp = max(0, amount)
+        level = 1
+        cursor.execute('INSERT INTO user_xp (user_id, xp, level) VALUES (?, ?, ?)', (user_id, new_xp, level))
     else:
-        # 기존 유저라면 XP 수정
-        new_xp = row[0] + amount
-        cursor.execute('UPDATE user_xp SET xp = ? WHERE user_id = ?', (new_xp, user_id))
+        new_xp = max(0, row[0] + amount)
+        level = (new_xp // 100) + 1 # 100XP당 1레벨
+        cursor.execute('UPDATE user_xp SET xp = ?, level = ? WHERE user_id = ?', (new_xp, level, user_id))
         
     conn.commit()
     conn.close()
+    return new_xp, level # <--- 이 부분만 추가/수정됨
