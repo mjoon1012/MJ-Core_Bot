@@ -31,7 +31,7 @@ def get_role_data(xp: int):
     elif xp >= 100: return "사원", discord.Color.blue()
     else: return "인턴", discord.Color.light_gray()
 
-# 정보 조회용 임베드 생성 함수 (중복 제거)
+# 정보 조회용 임베드 생성 함수
 def create_info_embed(target: discord.Member, xp: int, level: int):
     role_name, color = get_role_data(xp)
     current_level_xp = xp % 100
@@ -52,7 +52,8 @@ class InfoButtonView(discord.ui.View):
         super().__init__(timeout=60)
         self.target_member = target_member
 
-    @discord.ui.button(label="상세 정보 확인", style=discord.ButtonStyle.primary, emoji="🔍")
+    # 이모지 제거 및 공개 메시지로 변경
+    @discord.ui.button(label="상세 정보 확인", style=discord.ButtonStyle.primary)
     async def get_info(self, interaction: discord.Interaction, button: discord.ui.Button):
         row = database.get_user_xp(self.target_member.id)
         if not row:
@@ -60,7 +61,8 @@ class InfoButtonView(discord.ui.View):
             return
         xp, level = row
         embed = create_info_embed(self.target_member, xp, level)
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        # ephemeral=True 제거하여 공개 메시지로 변경
+        await interaction.response.send_message(embed=embed)
 
 async def check_role_upgrade(member: discord.Member, xp: int):
     role_name, _ = get_role_data(xp)
@@ -78,7 +80,7 @@ async def check_role_upgrade(member: discord.Member, xp: int):
 async def on_ready():
     database.init_db()
     await bot.tree.sync()
-    print(f'{bot.user} v0.7.0 로그인 완료!')
+    print(f'{bot.user} v0.9.0 로그인 완료!')
 
 @bot.tree.command(name="포인트", description="유저의 경험치를 수정합니다.")
 async def 포인트(interaction: discord.Interaction, member: discord.Member, action: Literal["추가", "제거"], amount: int):
@@ -105,7 +107,7 @@ async def 정보(interaction: discord.Interaction, member: Optional[discord.Memb
         return
     xp, level = row
     embed = create_info_embed(target, xp, level)
-    embed.set_footer(text=f"MJ-Core v0.7.0 | {interaction.user.display_name}님 요청")
+    embed.set_footer(text=f"MJ-Core v0.9.0 | {interaction.user.display_name}님 요청")
     await interaction.response.send_message(embed=embed)
 
 @bot.tree.command(name="핑", description="봇의 응답 속도 확인")
